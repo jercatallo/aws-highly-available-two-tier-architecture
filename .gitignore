@@ -1,0 +1,16 @@
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+cdk.context.json
+
+# Generated files
+*.js
+*.d.ts
+*.js.map
+!jest.config.js
+
+.envcdk.context.json
+
+.env

@@ -1,0 +1,181 @@
+{
+  "stackName": "WebApp-Dev-MultiAZ-2TierInfra",
+  "environment": {
+    "name": "dev",
+    "region": "us-east-1"
+  },
+  "tags": {
+    "Project": "HighlyAvailable2Tier",
+    "ManagedBy": "CDK",
+    "CostCenter": "Engineering",
+    "Owner": "DevOps",
+    "Environment": "Development"
+  },
+  "resourceNames": {
+    "vpc": "WebApp-Dev-MultiAZ-2TierInfra-Vpc",
+    "albSecurityGroup": "WebApp-Dev-MultiAZ-2TierInfra-AlbSecurityGroup",
+    "asgSecurityGroup": "WebApp-Dev-MultiAZ-2TierInfra-AsgSecurityGroup",
+    "databaseSecurityGroup": "WebApp-Dev-MultiAZ-2TierInfra-DatabaseSecurityGroup",
+    "publicNetworkAcl": "WebApp-Dev-MultiAZ-2TierInfra-PublicNetworkAcl",
+    "privateNetworkAcl": "WebApp-Dev-MultiAZ-2TierInfra-PrivateNetworkAcl",
+    "applicationLoadBalancer": "WebApp-Dev-MultiAZ-2TierInfra-ApplicationLoadBalancer",
+    "targetGroup": "WebApp-Dev-MultiAZ-2TierInfra-WebAppTargetGroup",
+    "httpListener": "WebApp-Dev-MultiAZ-2TierInfra-HttpListener",
+    "autoScalingGroup": "WebApp-Dev-MultiAZ-2TierInfra-WebAppAutoScalingGroup",
+    "launchTemplate": "WebApp-Dev-MultiAZ-2TierInfra-LaunchTemplate",
+    "cpuScalingPolicy": "WebApp-Dev-MultiAZ-2TierInfra-CpuScaling",
+    "database": "WebApp-Dev-MultiAZ-2TierInfra-Database",
+    "databaseSubnetGroup": "WebApp-Dev-MultiAZ-2TierInfra-DatabaseSubnetGroup",
+    "databaseCredentials": "WebApp-Dev-MultiAZ-2TierInfra-DatabaseCredentials",
+    "vpcFlowLogsGroup": "WebApp-Dev-MultiAZ-2TierInfra-VpcFlowLogsGroup",
+    "vpcFlowLog": "WebApp-Dev-MultiAZ-2TierInfra-VpcFlowLog"
+  },
+  "network": {
+    "vpc": {
+      "cidr": "10.0.0.0/16",
+      "maxAzs": 2,
+      "natGatewaysCount": 2,
+      "subnetCidrMask": 24,
+      "enableFlowLogs": true,
+      "flowLogsRetentionDays": 7,
+      "subnets": {
+        "publicSubnetName": "Public",
+        "privateSubnetName": "Private"
+      },
+      "flowLogs": {
+        "trafficType": "ALL",
+        "logGroupRemovalPolicy": "DESTROY"
+      }
+    },
+    "security": {
+      "allowHttpFrom": "0.0.0.0/0",
+      "httpPort": 80,
+      "httpsPort": 443,
+      "dbPort": 3306,
+      "albAllowAllOutbound": false,
+      "asgAllowAllOutbound": false,
+      "dbAllowAllOutbound": false,
+      "allowPackageDownloads": true
+    },
+    "networkAcls": {
+      "enabled": true,
+      "rules": {
+        "httpInboundRuleNumber": 100,
+        "enableHttpInbound": true,
+        "httpsInboundRuleNumber": 105,
+        "enableHttpsInbound": true,
+        "ephemeralInboundRuleNumber": 110,
+        "enableEphemeralInbound": true,
+        "allOutboundRuleNumber": 100,
+        "enableAllOutbound": true,
+        "privateHttpRuleNumber": 100,
+        "enablePrivateHttpInbound": true,
+        "privateDatabaseRuleNumber": 110,
+        "enablePrivateDatabaseInbound": true,
+        "privateEphemeralRuleNumber": 120,
+        "enablePrivateEphemeralInbound": true,
+        "enablePrivateAllOutbound": true
+      },
+      "ephemeralPorts": {
+        "start": 1024,
+        "end": 65535
+      }
+    }
+  },
+  "compute": {
+    "alb": {
+      "internetFacing": true,
+      "deletionProtection": false,
+      "idleTimeout": 60,
+      "http2Enabled": true,
+      "deregistrationDelay": 30,
+      "targetGroupPort": 80,
+      "targetGroupProtocol": "HTTP",
+      "targetType": "INSTANCE",
+      "listenerPort": 80,
+      "listenerProtocol": "HTTP",
+      "healthCheck": {
+        "enabled": true,
+        "path": "/",
+        "protocol": "HTTP",
+        "interval": 30,
+        "timeout": 5,
+        "healthyThresholdCount": 2,
+        "unhealthyThresholdCount": 3,
+        "port": "80"
+      }
+    },
+    "asg": {
+      "minCapacity": 2,
+      "maxCapacity": 6,
+      "desiredCapacity": 2,
+      "instanceClass": "T2",
+      "instanceSize": "MICRO",
+      "machineImageType": "AMAZON_LINUX_2023",
+      "healthCheckType": "ELB",
+      "healthCheckGracePeriod": 300,
+      "cooldown": 300,
+      "targetCpuUtilization": 70,
+      "requireImdsv2": true,
+      "subnetType": "PRIVATE_WITH_EGRESS",
+      "scaleInCooldown": 300,
+      "scaleOutCooldown": 60
+    },
+    "storage": {
+      "volumeSize": 20,
+      "volumeType": "GP3",
+      "iops": 3000,
+      "encrypted": true,
+      "deleteOnTermination": true,
+      "deviceName": "/dev/xvda"
+    }
+  },
+  "monitoring": {
+    "enableDetailedMonitoring": true,
+    "metricCollectionGranularity": "1Minute",
+    "cloudWatchLogsRetention": 7
+  },
+  "outputs": {
+    "exportPrefix": "WebApp-Dev-MultiAZ-2TierInfra",
+    "enabled": {
+      "vpcId": true,
+      "vpcCidr": true,
+      "loadBalancerDns": true,
+      "loadBalancerArn": true,
+      "applicationUrl": true,
+      "autoScalingGroupName": true,
+      "autoScalingGroupArn": true,
+      "databaseEndpoint": true,
+      "databasePort": true,
+      "databaseSecretArn": true
+    }
+  },
+  "database": {
+    "engine": "mariadb",
+    "engineVersion": "10.11",
+    "instanceClass": "T3",
+    "instanceSize": "MICRO",
+    "allocatedStorage": 20,
+    "maxAllocatedStorage": 100,
+    "multiAz": true,
+    "port": 3306,
+    "databaseName": "appdb",
+    "backupRetention": 7,
+    "preferredBackupWindow": "03:00-04:00",
+    "preferredMaintenanceWindow": "sun:04:00-sun:05:00",
+    "deletionProtection": false,
+    "removalPolicy": "DESTROY",
+    "storageEncrypted": true,
+    "autoMinorVersionUpgrade": true,
+    "credentials": {
+      "username": "admin",
+      "passwordLength": 32,
+      "excludePunctuation": true,
+      "includeSpace": false
+    },
+    "cloudWatchLogs": {
+      "exports": ["error", "general", "slowquery"],
+      "retention": 7
+    }
+  }
+}
